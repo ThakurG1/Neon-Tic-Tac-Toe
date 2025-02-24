@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Tic Tac Toe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #0a0a0a;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .title {
+            color: white;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .mode-selection {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 12px 25px;
+            border: 2px solid #fff;
+            border-radius: 25px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        .mode-btn:hover, .mode-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            background: transparent;
+            padding: 20px;
+            position: relative;
+            margin: 20px auto;
+            width: 330px;
+        }
+
+        /* Update grid lines */
+        .board::before, .board::after {
+            content: '';
+            position: absolute;
+            background: white;
+        }
+
+        .board::before {
+            width: 3px;
+            height: calc(100% - 40px);
+            top: 20px;
+            left: calc(33.33% + 10px);
+            box-shadow: 0 0 15px #fff, 0 0 25px #fff;
+        }
+
+        .board::after {
+            width: calc(100% - 40px);
+            height: 3px;
+            top: calc(33.33% + 10px);
+            left: 20px;
+            box-shadow: 0 0 15px #fff, 0 0 25px #fff;
+        }
+
+        /* Add second set of grid lines */
+        .board .grid-line-v, .board .grid-line-h {
+            position: absolute;
+            background: white;
+            box-shadow: 0 0 15px #fff, 0 0 25px #fff;
+        }
+
+        .board .grid-line-v {
+            width: 3px;
+            height: calc(100% - 40px);
+            top: 20px;
+            left: calc(66.66% + 5px);
+        }
+
+        .board .grid-line-h {
+            width: calc(100% - 40px);
+            height: 3px;
+            top: calc(66.66% + 5px);
+            left: 20px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Neon X and O styles */
+        .cell.x {
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+        }
+
+        .cell.o {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
+        }
+
+        .cell.x-hover:hover {
+            color: rgba(255, 0, 255, 0.3);
+        }
+
+        .cell.o-hover:hover {
+            color: rgba(0, 255, 255, 0.3);
+        }
+
+        .player-indicator {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .control-btn {
+            padding: 12px 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            border-color: white;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .winner-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: modalAppear 0.3s ease-out;
+        }
+
+        @keyframes modalAppear {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .restart-btn {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        @media (max-width: 480px) {
+            .board {
+                width: 270px;
+                gap: 10px;
+            }
+
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+
+            .game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .control-btn {
+                width: 200px;
+            }
+
+            .mode-selection {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mode-btn {
+                width: 200px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">Neon Tic Tac Toe</h1>
+        <div class="player-indicator animate__animated animate__fadeIn" id="playerIndicator">Your Turn (X)</div>
+        <div class="game-controls">
+            <button class="control-btn" onclick="undoMove()" id="undoBtn" disabled>
+                <i class="fas fa-undo"></i> Undo
+            </button>
+            <button class="control-btn" onclick="redoMove()" id="redoBtn" disabled>
+                <i class="fas fa-redo"></i> Redo
+            </button>
+        </div>
+        <div class="mode-selection">
+            <button class="mode-btn active" onclick="setGameMode('user')">Play with User</button>
+            <button class="mode-btn" onclick="setGameMode('computer')">Play with Computer</button>
+        </div>
+        <div class="board">
+            <div class="grid-line-v"></div>
+            <div class="grid-line-h"></div>
+            <div class="cell" onclick="makeMove(0)"></div>
+            <div class="cell" onclick="makeMove(1)"></div>
+            <div class="cell" onclick="makeMove(2)"></div>
+            <div class="cell" onclick="makeMove(3)"></div>
+            <div class="cell" onclick="makeMove(4)"></div>
+            <div class="cell" onclick="makeMove(5)"></div>
+            <div class="cell" onclick="makeMove(6)"></div>
+            <div class="cell" onclick="makeMove(7)"></div>
+            <div class="cell" onclick="makeMove(8)"></div>
+        </div>
+    </div>
+    <div class="winner-modal">
+        <div class="modal-content">
+            <h2 id="winner-text"></h2>
+            <button class="restart-btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 
